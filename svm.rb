@@ -1,44 +1,40 @@
+# Dynamic loading and matching the PATH of files
+$LOAD_PATH.unshift(File.dirname(__FILE__)) unless $LOAD_PATH.include?(File.dirname(__FILE__))
+
+require './pattern'
+
 class SVM
 
-  iteration = 1000
-  weight = Array.new
-  bais = 0.0
-  c = 1
-  tolerance = 0.0001
-  alphas = []
+  attr_accessor :iteration, :weights, :bais, :c, :tolerance, :alphas
 
-  def initialize(toleranceValue,iterationValue,cValue)
-    if toleranceValue.is_a? Float
-      toleration = toleranceValue
-    end
+  def initialize(tolerance_value = 0.001, iteration_value = 1000, c_value = 1)
 
-    if iteration.is_a? Integer
-      iteration = iterationValue
-    end
+    @tolerance = tolerance_value
+    @iteration = iteration_value
+    @c         = c_value
 
-    if cValue.is_a? Float
-      c = cValue
-    end
-
+    bais      = 0.0
+    weights   = []
+    alphas    = []
+    #if( someObjec.is_a? Float ), is_a method is like isClassKindOf.
   end
 
-  def training(dataArrayX,dataArrayY)
-    #當輸入的參數不是Array的時候就直接return
-    if !(dataArrayX.is_a? Array) || !(dataArrayY.is_a? Array) || dataArrayX.size == 0
+  def training(samples, targets)
+
+    # 當輸入的參數不是 Array 或 為空陣列時 就不處理
+    if !(samples.is_a? Array) || (samples.size == 0) || !(targets.is_a? Array)
         return
     end
 
-    #將預設的W設定成0
-    weight = Array.new(dataArrayX[0].size)
-    #將Alphas也都預設成0
-    alphas = Array.new(dataArrayX.size)
-
-
+    # 將預設的 W 設定成 0
+    weights = Array.new(samples[0].size)
+    # 將 Alphas 也都預設成 0
+    alphas  = Array.new(samples.size)
 
   end
 
 end
 
-svm = SVM.new(1000,0.0001,1)
 
-svm.training([[0,0],[2,2],[2,0],[3,0]],[-1,-1,1,1])
+
+
