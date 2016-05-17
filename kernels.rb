@@ -1,4 +1,4 @@
-class Kernel
+class Kernels
 
   attr_accessor :array_xi
   attr_accessor :array_xj
@@ -20,7 +20,7 @@ class Kernel
     @array_xi = data_xi
     @array_xj = data_xj
 
-    case kernelType
+    case @kernel_method
       when "Linear"
         puts "Kernel is linear"
         kernel_linear
