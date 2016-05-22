@@ -8,16 +8,18 @@ class Pattern
     @features    = data_features.to_a # Why needs to_a ?
     @expectation = expectation_target.to_f
     @alpha       = alpha_value.to_f
+    @kernel      = Kernels.new()
   end
 
   #bais 為目前此SVM的Bais
   #all_points是一個裝Pattern型態的Array
   #kernel要傳入Kernel class 來做kernel的計算
-  def error(bais = 0.0, all_points, kernel)
+  def error(bais = 0.0, all_points, kernelType = "Linear")
+    @kernel.kernel_method = kernelType
     error_value = 0.0
 
     all_points.each do |patten|
-      error_value += (patten.expectation * patten.alpha * kernel.run_with_data(pattern.features, @features))
+      error_value += (patten.expectation * patten.alpha * @kernel.run_with_data(pattern.features, @features))
     end
 
     error_value += bais - expectation
