@@ -53,11 +53,12 @@ class SVM
           matchPattern = self.randomSelectSecond(index)
 
           matchPatternNewAlpha = self.updateMatchPatternAlpha
-          self.limitMatchPatternNewAlpha(matchPatternNewAlpha)
+          matchPatternNewAlpha = self.limitMatchPatternNewAlpha(matchPatternNewAlpha)
 
           mainPatternNewAlpha = self.updateMainPatternAlpha
 
-
+          self.updateWeight
+          self.updateBais
 
         end
 
@@ -87,21 +88,54 @@ class SVM
   #更新挑選第二點的Alpha
   def updateMatchPatternAlpha
 
+    e1 = mainPattern.error(bais, trainingPatterns,"Linear")
+    e2 = matchPattern.error(bais, trainingPatterns,"Linear")
+
+    k11 = kernel.run_with_data(mainPattern, mainPattern)
+    k12 = kernel.run_with_data(mainPattern, matchPattern)
+    k22 = kernel.run_with_data(matchPattern, matchPattern)
+
+    matchPattern.alpha + (matchPattern.expectation * (e1 - e2)) / (k11 + k22 - 2*k12)
+
   end
 
   #更新後第二點的Alpha要符合在範圍內，如不符合則將值更新到極值
   def limitMatchPatternNewAlpha(newAlpha)
 
+    min = 0
+    max = 0
+
+    if mainPattern.expectation * matchPattern.expectation == 1
+      min = [0, mainPattern.alpha + matchPattern.alpha - c].max
+      max = [c, mainPattern.alpha + matchPattern.alpha].min
+    else
+      min = [0, matchPattern.alpha - mainPattern.alpha].max
+      max = [c, c + matchPattern.alpha - mainPattern.alpha].min
+    end
+
+
+    if newAlpha > max
+      newAlpha = max
+    else if newAlpha < min
+       newAlpha = min
+    end
+
+    return newAlpha
+
   end
 
   #更新第一點的Alpha
-  def updateMainPatternAlpha
-    
+  def updateMainPatternAlpha(newMatchAlpha)
+    mainPattern.alpha + (matchPattern.expectation * mainPattern.expectation * (matchPattern.alpha - newMatchAlpha))
   end
 
   #更新權重
-  def updateWeight
-    
+  def updateWeight(newMainAlpha, newMatchAlpha)
+
+    weights.each_with_index do |value, index|
+      weights[index] = value + (newMainAlpha - mainPattern.alpha) * mainPattern.expectation * mainPattern.features[index] + (newMatchAlpha - matchPattern.alpha) * matchPattern.expectation * matchPattern.features[index]
+    end
+
   end
 
   #更新偏權值
