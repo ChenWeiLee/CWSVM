@@ -7,9 +7,9 @@ require './kernels'
 class SVM
 
   attr_accessor :iteration, :weights, :bais, :c, :tolerance, :alphas, :trainingPatterns
-  attr_accessor :kernel, :mainPattern, :matchPattern
+  attr_accessor :kernel, :kernelType, :mainPattern, :matchPattern
 
-  def initialize(tolerance_value = 0.001, iteration_value = 1000, c_value = 1)
+  def initialize(tolerance_value = 0.001, iteration_value = 1000, c_value = 1, kernelType = "Linear")
 
     @tolerance = tolerance_value
     @iteration = iteration_value
@@ -21,6 +21,7 @@ class SVM
     alphas         = []
     trainingPatterns = []
     kernel = Kernels.new()
+    kernelType = kernelType
     #if( someObjec.is_a? Float ), is_a method is like isClassKindOf.
   end
 
@@ -57,8 +58,8 @@ class SVM
 
           mainPatternNewAlpha = self.updateMainPatternAlpha
 
-          self.updateWeight
-          self.updateBais
+          self.updateWeight(mainPatternNewAlpha, matchPatternNewAlpha)
+          self.updateBais(mainPatternNewAlpha, matchPatternNewAlpha)
 
         end
 
@@ -88,8 +89,8 @@ class SVM
   #更新挑選第二點的Alpha
   def updateMatchPatternAlpha
 
-    e1 = mainPattern.error(bais, trainingPatterns,"Linear")
-    e2 = matchPattern.error(bais, trainingPatterns,"Linear")
+    e1 = mainPattern.error(bais, trainingPatterns,kernelType)
+    e2 = matchPattern.error(bais, trainingPatterns,kernelType)
 
     k11 = kernel.run_with_data(mainPattern, mainPattern)
     k12 = kernel.run_with_data(mainPattern, matchPattern)
@@ -139,7 +140,18 @@ class SVM
   end
 
   #更新偏權值
-  def updateBais
+  def updateBais(newMainAlpha, newMatchAlpha)
+
+    mainBais  = bais - mainPattern.error(bais,trainingPatterns,kernelType) - mainPattern.expectation * (newMainAlpha - mainPattern.alpha) * kernel.run_with_data(mainPattern,mainPattern) - matchPattern.expectation * (newMatchAlpha - matchPattern.alpha) * kernel.run_with_data(mainPattern,matchPattern)
+    matchBais = bais - matchPattern.error(bais,trainingPatterns,kernelType) - mainPattern.expectation * (newMainAlpha - mainPattern.alpha) * kernel.run_with_data(mainPattern,matchPattern) - matchPattern.expectation * (newMatchAlpha - matchPattern.alpha) * kernel.run_with_data(matchPattern,matchPattern)
+
+    if newMainAlpha > 0 && newMainAlpha < c
+      bais = mainBais
+    elsif newMatchAlpha > 0 && newMatchAlpha < c
+      bais = matchBais
+    else
+      bais = (mainBais + matchBais) /2
+    end
 
   end
   
