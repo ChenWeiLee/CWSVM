@@ -14,13 +14,13 @@ class Pattern
   #bais 為目前此SVM的Bais
   #all_points是一個裝Pattern型態的Array
   #kernel要傳入Kernel class 來做kernel的計算
-  def error(bais = 0.0, all_points, kernelType = "Linear")
-    @kernel.kernel_method = kernelType
+  def error(bais = 0.0, all_points, kernel_type)
+    @kernel.kernel_method = kernel_type == nil ? "Linear" : kernel_type
     error_value = 0.0
 
-    all_points.each do |patten|
-      error_value += (patten.expectation * patten.alpha * @kernel.run_with_data(pattern.features, @features))
-    end
+    all_points.each{ |pattern|
+      error_value += (pattern.expectation * pattern.alpha * @kernel.run_with_data(pattern.features, @features))
+    }
 
     error_value += bais - expectation
   end

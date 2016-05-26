@@ -8,7 +8,7 @@ class Kernels
   attr_accessor :sigma
 
   #init時請給訂kernel的方法
-  def initialize(kernel_method = "Linear")
+  def initialize(kernel_method="Linear")
     @kernel_method = kernel_method
     @sigma         = 1.0
   end
@@ -17,15 +17,15 @@ class Kernels
   def run_with_data(data_xi , data_xj)
 
     #檢查傳入的參數是否為Array型態
-    @array_xi = data_xi
-    @array_xj = data_xj
+    @array_xi = data_xi.to_a
+    @array_xj = data_xj.to_a
 
     case @kernel_method
       when "Linear"
-        puts "Kernel is linear"
+        #puts "Kernel is linear"
         kernel_linear
       else
-        puts "Kernel is RBF"
+        #puts "Kernel is RBF"
         kernel_RBF
     end
     
@@ -33,9 +33,11 @@ class Kernels
 
   def kernel_linear
     result = 0.0
-    array_xi.each_index do |index|
-      result = result + array_xi[index] * array_xj[index]
-    end
+
+    @array_xi.each_index { |index|
+      result += @array_xi[index].to_f * @array_xj[index].to_f
+    }
+    result
   end
 
 
