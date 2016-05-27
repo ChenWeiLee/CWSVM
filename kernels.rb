@@ -1,3 +1,26 @@
+
+class KernelType
+
+  attr_reader :type
+  attr_accessor :sigma
+
+  def initialize(kernelType = :linear,sigmaValue = 1)
+    @type = kernelType
+    @sigma = sigmaValue
+  end
+
+  def linear
+    @type = :linear
+  end
+
+  def rbf(sigmaValue = 1)
+    @type = :rbf
+    @sigma = sigmaValue
+  end
+
+end
+
+
 class Kernels
 
   attr_accessor :array_xi
@@ -5,10 +28,8 @@ class Kernels
   attr_accessor :sigma
   attr_accessor :kernel_method
 
-  attr_accessor :sigma
-
   #init時請給訂kernel的方法
-  def initialize(kernel_method="Linear")
+  def initialize(kernel_method = KernelType.new(:linear))
     @kernel_method = kernel_method
     @sigma         = 1.0
   end
@@ -20,8 +41,9 @@ class Kernels
     @array_xi = data_xi.to_a
     @array_xj = data_xj.to_a
 
-    case @kernel_method
-      when "Linear"
+
+    case @kernel_method.type
+      when :linear
         #puts "Kernel is linear"
         kernel_linear
       else
@@ -47,7 +69,7 @@ class Kernels
       result = result + (array_xi[index] - array_xj[index]) ** 2
     end
     result = result ** (1.0/2) # => 開根號
-    Math.exp(- (result ** 2)/-2*(@sigma ** 2))
+    Math.exp(- (result ** 2)/-2*(@kernel_method.sigma ** 2))
   end
 
 

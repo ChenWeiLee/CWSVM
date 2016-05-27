@@ -7,9 +7,9 @@ require './kernels'
 class SVM
 
   attr_accessor :iteration, :weights, :bais, :c, :tolerance, :alphas, :trainingPatterns
-  attr_accessor :kernel, :kernelType, :mainPattern, :matchPattern
+  attr_accessor :kernel, :mainPattern, :matchPattern
 
-  def initialize(tolerance_value = 0.001, iteration_value = 1000, c_value = 1, kernelType)
+  def initialize(tolerance_value = 0.001, iteration_value = 1000, c_value = 1, kernel_Method = KernelType.new)
 
     @tolerance = tolerance_value
     @iteration = iteration_value
@@ -21,13 +21,13 @@ class SVM
     @alphas         = []
     @trainingPatterns = []
     @kernel = Kernels.new()
-    @kernelType = kernelType
+    @kernel.kernel_method = kernel_Method
     #if( someObjec.is_a? Float ), is_a method is like isClassKindOf.
   end
 
-  def training(samples, targets, kernelMethod)
+  def training(samples, targets, kernelMethod = KernelType.new)
 
-    @kernel.kernel_method = kernelMethod != nil ? kernelMethod : "Linear"
+    @kernel.kernel_method = kernelMethod
 
     # 當輸入的參數不是 Array 或 為空陣列時 就不處理
     if !(samples.is_a? Array) || (samples.size == 0) || !(targets.is_a? Array)
@@ -95,8 +95,8 @@ class SVM
   #更新挑選第二點的Alpha
   def updateMatchPatternAlpha
 
-    e1 = @mainPattern.error(@bais, @trainingPatterns,@kernelType)
-    e2 = @matchPattern.error(@bais, @trainingPatterns,@kernelType)
+    e1 = @mainPattern.error(@bais, @trainingPatterns,@kernel.kernel_method)
+    e2 = @matchPattern.error(@bais, @trainingPatterns,@kernel.kernel_method)
 
     k11 = @kernel.run_with_data(@mainPattern.features, @mainPattern.features)
     k12 = @kernel.run_with_data(@mainPattern.features, @matchPattern.features)
@@ -146,8 +146,8 @@ class SVM
   #更新偏權值
   def updateBais(newMainAlpha, newMatchAlpha)
 
-    mainBais  = @bais - @mainPattern.error(@bais,@trainingPatterns,@kernelType) - @mainPattern.expectation * (newMainAlpha - @mainPattern.alpha) * @kernel.run_with_data(@mainPattern.features, @mainPattern.features) - @matchPattern.expectation * (newMatchAlpha - @matchPattern.alpha) * @kernel.run_with_data(@mainPattern.features, @matchPattern.features)
-    matchBais = @bais - @matchPattern.error(@bais,@trainingPatterns,@kernelType) - @mainPattern.expectation * (newMainAlpha - @mainPattern.alpha) * @kernel.run_with_data(@mainPattern.features, @matchPattern.features) - @matchPattern.expectation * (newMatchAlpha - @matchPattern.alpha) * @kernel.run_with_data(@matchPattern.features, @matchPattern.features)
+    mainBais  = @bais - @mainPattern.error(@bais,@trainingPatterns,@kernel.kernel_method) - @mainPattern.expectation * (newMainAlpha - @mainPattern.alpha) * @kernel.run_with_data(@mainPattern.features, @mainPattern.features) - @matchPattern.expectation * (newMatchAlpha - @matchPattern.alpha) * @kernel.run_with_data(@mainPattern.features, @matchPattern.features)
+    matchBais = @bais - @matchPattern.error(@bais,@trainingPatterns,@kernel.kernel_method) - @mainPattern.expectation * (newMainAlpha - @mainPattern.alpha) * @kernel.run_with_data(@mainPattern.features, @matchPattern.features) - @matchPattern.expectation * (newMatchAlpha - @matchPattern.alpha) * @kernel.run_with_data(@matchPattern.features, @matchPattern.features)
 
     if newMainAlpha > 0 && newMainAlpha < c
       @bais = mainBais
@@ -164,7 +164,7 @@ class SVM
 
     value = pattern.expectation * pattern.error(@bais,@trainingPatterns,@kernel.kernel_method)
 
-    if (value < -tolerance && pattern.alpha < c) || (value > tolerance && pattern.alpha > 0)
+    if (value < -1 * @tolerance.to_f && pattern.alpha < c) || (value > @tolerance.to_f&& pattern.alpha > 0)
         return false
     else
         return true
