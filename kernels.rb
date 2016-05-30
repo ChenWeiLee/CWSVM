@@ -68,8 +68,9 @@ class Kernels
     array_xi.each_index do |index|
       result = result + (array_xi[index] - array_xj[index]) ** 2
     end
-    result = result ** (1.0/2) # => 開根號
-    Math.exp(- (result ** 2)/-2*(@kernel_method.sigma ** 2))
+    result = Math.sqrt(result) # => 開根號
+    result = Math.exp(- (result ** 2)/-2*(@kernel_method.sigma ** 2))
+    result
   end
 
 
