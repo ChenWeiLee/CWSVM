@@ -15,10 +15,13 @@ kernel_type.linear
 
 patterns = Array.new
 
-patterns << Pattern.new([0,0], -1)
-patterns << Pattern.new([2,2], -1)
-patterns << Pattern.new([2,0], 1)
-patterns << Pattern.new([3,0], 1)
+patterns << Pattern.new([0,0], -2)
+patterns << Pattern.new([2,2], -2)
+patterns << Pattern.new([2,0], 2)
+patterns << Pattern.new([3,0], 2)
 
 svm_manager = SVMManager.new(0.0001, 1000, 1, kernel_type)
 svm_manager.start_training_with_patterns(patterns)
+
+result = svm_manager.classify_data_with_svm([5,0])
+puts "Result = #{result}"

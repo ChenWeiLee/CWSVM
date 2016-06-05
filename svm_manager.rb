@@ -16,6 +16,27 @@ class SVMManager
 
   end
 
+  def classify_data_with_svm(data)
+
+    bestSVMResult = -1
+    classifyResult = 0
+
+    @svms.each { |svm|
+      result = svm.classify_data(data)
+
+      if result >= bestSVMResult
+        bestSVMResult = result
+        classifyResult = svm.mainTag
+      end
+    }
+
+    return classifyResult
+
+  end
+
+
+  #將訓練資料丟入並且開始訓練多個SVM
+  #使用one-versus-rest方式來做多分類
   def start_training_with_patterns(patterns)
 
     classificationPatterns = self.classify_with_patterns(patterns)
@@ -33,6 +54,7 @@ class SVMManager
 
   end
 
+  #將訓練數據分類
   def classify_with_patterns(patterns)
 
     classificationPattern = Hash.new

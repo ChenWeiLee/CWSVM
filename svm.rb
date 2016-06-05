@@ -6,6 +6,7 @@ require './kernels'
 
 class SVM
 
+  attr_accessor :mainTag
   attr_accessor :iteration, :weights, :bais, :c, :tolerance, :alphas, :trainingPatterns
   attr_accessor :kernel, :mainPattern, :matchPattern
 
@@ -14,7 +15,6 @@ class SVM
     @tolerance = tolerance_value
     @iteration = iteration_value
     @c         = c_value
-
 
     @bais           = 0.0
     @weights        = []
@@ -25,6 +25,12 @@ class SVM
     #if( someObjec.is_a? Float ), is_a method is like isClassKindOf.
   end
 
+  #將要分類的資料丟到已經訓練好的SVM
+  def classify_data(dataFeatures)
+
+    result = @kernel.run_with_data(@weights,dataFeatures) + @bais
+  end
+  
   #分別輸入特徵值跟目標輸出直來訓練
   def training_with_data_and_target(samples, targets)
 
@@ -47,6 +53,7 @@ class SVM
 
     mainDatas = Marshal.load(Marshal.dump(mainPatterns))
     matchDatas = Marshal.load(Marshal.dump(matchPatterns))
+    @mainTag = mainDatas[0].expectation
 
     mainDatas.each { |mainpattern|
       mainpattern.expectation = 1
