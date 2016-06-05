@@ -1,11 +1,24 @@
 require './svm'
+require './pattern'
+require './svm_manager'
+
 
 # samples
 kernel_type = KernelType.new
 kernel_type.linear
 
-svm              = SVM.new(0.0001, 1000, 1, kernel_type)
-training_samples = [[0,0], [2,2], [2,0], [3,0]]
-samples_targets  = [-1, -1, 1, 1]
+# svm              = SVM.new(0.0001, 1000, 1, kernel_type)
+# training_samples = [[0,0], [2,2], [2,0], [3,0]]
+# samples_targets  = [-1, -1, 1, 1]
+#
+# svm.training_with_data_and_target(training_samples, samples_targets)
 
-svm.training(training_samples, samples_targets, kernel_type)
+patterns = Array.new
+
+patterns << Pattern.new([0,0], -1)
+patterns << Pattern.new([2,2], -1)
+patterns << Pattern.new([2,0], 1)
+patterns << Pattern.new([3,0], 1)
+
+svm_manager = SVMManager.new(0.0001, 1000, 1, kernel_type)
+svm_manager.start_training_with_patterns(patterns)

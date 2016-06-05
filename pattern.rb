@@ -7,7 +7,7 @@ class Pattern
   attr_accessor :expectation # 期望輸出值
   attr_accessor :alpha
 
-  def initialize(data_features, expectation_target, alpha_value)
+  def initialize(data_features, expectation_target, alpha_value = 0)
     @features    = data_features.to_a # Why needs to_a ?
     @expectation = expectation_target.to_f
     @alpha       = alpha_value.to_f

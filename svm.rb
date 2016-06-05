@@ -25,40 +25,69 @@ class SVM
     #if( someObjec.is_a? Float ), is_a method is like isClassKindOf.
   end
 
-  def training(samples, targets, kernelMethod = KernelType.new)
-
-    @kernel.kernel_method = kernelMethod
+  #分別輸入特徵值跟目標輸出直來訓練
+  def training_with_data_and_target(samples, targets)
 
     # 當輸入的參數不是 Array 或 為空陣列時 就不處理
     if !(samples.is_a? Array) || (samples.size == 0) || !(targets.is_a? Array)
-        return
+      return
     end
 
-    # 將預設的 W 設定成 0
-    @weights = Array.new(samples[0].size, 0)
     # 將輸入進來的Sample轉乘Pattern
     samples.each_index{ |index|
       @trainingPatterns[index] = Pattern.new(samples[index],targets[index],0)
     }
+
+    self.start_training
+
+  end
+
+  #傳入Pattern來訓練
+  def training_with_patterns(mainPatterns,matchPatterns)
+
+    mainDatas = Marshal.load(Marshal.dump(mainPatterns))
+    matchDatas = Marshal.load(Marshal.dump(matchPatterns))
+
+    mainDatas.each { |mainpattern|
+      mainpattern.expectation = 1
+    }
+
+    matchDatas.each { |matchpattern|
+      matchpattern.expectation = -1
+    }
+
+    @trainingPatterns.clear
+    @trainingPatterns += mainDatas + matchDatas
+
+    self.start_training
+
+  end
+
+  #開始訓練SVM
+  def start_training
+
+    # 將預設的 W 設定成 0
+    @weights = Array.new(@trainingPatterns[0].features.size, 0)
+
 
     trainFinish = true
 
     @iteration.to_i.times do
       trainFinish = true
       @trainingPatterns.each_with_index { |pattern, index|
-        if (self.checkPatternKKT(pattern) == false)
+        if (self.check_pattern_KKT(pattern) == false)
           trainFinish = false
 
           @mainPattern = pattern
-          @matchPattern = self.randomSelectSecond(index)
+          @matchPattern = self.random_select_second(index)
 
-          matchPatternNewAlpha = self.updateMatchPatternAlpha
-          matchPatternNewAlpha = self.limitMatchPatternNewAlpha(matchPatternNewAlpha)
+          matchPatternNewAlpha = self.update_matchPattern_alpha
+          matchPatternNewAlpha = self.limit_matchPattern_newAlpha(matchPatternNewAlpha)
 
-          mainPatternNewAlpha = self.updateMainPatternAlpha(matchPatternNewAlpha)
+          mainPatternNewAlpha = self.update_mainPattern_alpha(matchPatternNewAlpha)
 
-          self.updateWeight(mainPatternNewAlpha, matchPatternNewAlpha)
-          self.updateBais(mainPatternNewAlpha, matchPatternNewAlpha)
+          self.update_weight(mainPatternNewAlpha, matchPatternNewAlpha)
+          self.update_bais(mainPatternNewAlpha, matchPatternNewAlpha)
 
           @trainingPatterns[index].alpha = mainPatternNewAlpha
 
@@ -84,7 +113,7 @@ class SVM
   end
 
   #使用隨機挑選做第二點
-  def randomSelectSecond(patternIndex)
+  def random_select_second(patternIndex)
 
     #挑出不為第一筆Pattern Index的數字
     index = (0...@trainingPatterns.size).reject { |x| x==patternIndex }.to_a.sample
@@ -93,7 +122,7 @@ class SVM
   end
 
   #更新挑選第二點的Alpha
-  def updateMatchPatternAlpha
+  def update_matchPattern_alpha
 
     e1 = @mainPattern.error(@bais, @trainingPatterns,@kernel.kernel_method)
     e2 = @matchPattern.error(@bais, @trainingPatterns,@kernel.kernel_method)
@@ -107,7 +136,7 @@ class SVM
   end
 
   #更新後第二點的Alpha要符合在範圍內，如不符合則將值更新到極值
-  def limitMatchPatternNewAlpha(newAlpha)
+  def limit_matchPattern_newAlpha(newAlpha)
 
     if @mainPattern.expectation * @matchPattern.expectation == 1
       min = [0, @mainPattern.alpha + @matchPattern.alpha - c].max
@@ -130,12 +159,12 @@ class SVM
   end
 
   #更新第一點的Alpha
-  def updateMainPatternAlpha(newMatchAlpha)
+  def update_mainPattern_alpha(newMatchAlpha)
     @mainPattern.alpha + (@matchPattern.expectation * @mainPattern.expectation * (@matchPattern.alpha - newMatchAlpha))
   end
 
   #更新權重
-  def updateWeight(newMainAlpha, newMatchAlpha)
+  def update_weight(newMainAlpha, newMatchAlpha)
 
     @weights.each_with_index do |value, index|
       @weights[index] = value + (newMainAlpha - @mainPattern.alpha) * @mainPattern.expectation * @mainPattern.features[index] + (newMatchAlpha - @matchPattern.alpha) * @matchPattern.expectation * @matchPattern.features[index]
@@ -144,7 +173,7 @@ class SVM
   end
 
   #更新偏權值
-  def updateBais(newMainAlpha, newMatchAlpha)
+  def update_bais(newMainAlpha, newMatchAlpha)
 
     mainBais  = @bais - @mainPattern.error(@bais,@trainingPatterns,@kernel.kernel_method) - @mainPattern.expectation * (newMainAlpha - @mainPattern.alpha) * @kernel.run_with_data(@mainPattern.features, @mainPattern.features) - @matchPattern.expectation * (newMatchAlpha - @matchPattern.alpha) * @kernel.run_with_data(@mainPattern.features, @matchPattern.features)
     matchBais = @bais - @matchPattern.error(@bais,@trainingPatterns,@kernel.kernel_method) - @mainPattern.expectation * (newMainAlpha - @mainPattern.alpha) * @kernel.run_with_data(@mainPattern.features, @matchPattern.features) - @matchPattern.expectation * (newMatchAlpha - @matchPattern.alpha) * @kernel.run_with_data(@matchPattern.features, @matchPattern.features)
@@ -160,7 +189,7 @@ class SVM
   end
   
   #確認該點是否符合KKT條件
-  def checkPatternKKT(pattern)
+  def check_pattern_KKT(pattern)
 
     value = pattern.expectation * pattern.error(@bais,@trainingPatterns,@kernel.kernel_method)
 
